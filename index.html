@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Foodics Training POS</title>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Segoe UI',Arial,sans-serif;
+}
+body{
+  background:#eef1f5;
+  min-height:100vh;
+}
+
+/* ===== شاشة تسجيل الدخول ===== */
+.login-screen{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:linear-gradient(135deg,#00b14f,#00804f);
+}
+.login{
+  background:white;
+  padding:40px;
+  border-radius:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  width:350px;
+  text-align:center;
+}
+.login h1{
+  color:#00b14f;
+  margin-bottom:5px;
+}
+.login p.sub{
+  color:#888;
+  margin-bottom:20px;
+  font-size:14px;
+}
+input,select{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+}
+button{
+  padding:12px;
+  background:#00b14f;
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+  transition:.2s;
+}
+button:hover{
+  background:#009944;
+}
+.login button{
+  width:100%;
+  font-size:18px;
+  margin-top:10px;
+}
+.guest-btn{
+  background:#888 !important;
+  font-size:14px !important;
+  margin-top:8px !important;
+}
+.guest-btn:hover{
+  background:#666 !important;
+}
+.error-msg{
+  color:#e74c3c;
+  font-size:13px;
+  min-height:18px;
+  margin-top:5px;
+}
+.version-badge{
+  position:fixed;
+  bottom:10px;
+  left:10px;
+  background:#202733;
+  color:#00ff88;
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+  z-index:9999;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+  font-family:monospace;
+}
+
+/* ===== واجهة الـ POS ===== */
+#pos{
+  display:none;
+  height:100vh;
+}
+.topbar{
+  background:#202733;
+  color:white;
+  padding:12px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.topbar .brand{
+  font-size:18px;
+  font-weight:bold;
+  color:#00d16c;
+}
+.topbar .order-type{
+  display:flex;
+  gap:8px;
+}
+.order-type button{
+  background:#2c3443;
+  padding:8px 14px;
+  font-size:13px;
+}
+.order-type button.active{
+  background:#00b14f;
+}
+.topbar .table-input{
+  width:110px;
+  padding:8px;
+  margin:0;
+  font-size:13px;
+}
+.topbar .user-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:14px;
+}
+.logout-btn{
+  background:#e74c3c;
+  padding:8px 14px;
+  font-size:13px;
+}
+.logout-btn:hover{
+  background:#c0392b;
+}
+.manage-users-btn{
+  background:#2980b9;
+  padding:8px 14px;
+  font-size:13px;
+}
+.manage-users-btn:hover{
+  background:#1f618d;
+}
+
+/* ===== نافذة إدارة المستخدمين ===== */
+.modal-overlay{
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,.5);
+  z-index:100;
+  justify-content:center;
+  align-items:center;
+}
+.modal-overlay.show{
+  display:flex;
+}
+.modal-box{
+  background:white;
+  width:380px;
+  max-width:90%;
+  border-radius:12px;
+  padding:20px;
+  max-height:85vh;
+  overflow-y:auto;
+}
+.modal-box h3{
+  color:#00b14f;
+  margin-bottom:15px;
+}
+.modal-box .row{
+  display:flex;
+  gap:8px;
+}
+.modal-box input{
+  margin:0 0 8px 0;
+}
+.modal-box .row input{
+  margin-bottom:8px;
+}
+.user-list{
+  margin-top:15px;
+  border-top:1px solid #eee;
+  padding-top:10px;
+}
+.user-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #f2f2f2;
+  font-size:14px;
+}
+.user-row .del-user-btn{
+  background:#e74c3c;
+  padding:4px 10px;
+  font-size:12px;
+}
+.user-row .del-user-btn:hover{
+  background:#c0392b;
+}
+.modal-close-btn{
+  margin-top:15px;
+  background:#888;
+  width:100%;
+}
+.modal-close-btn:hover{
+  background:#666;
+}
+
+.layout{
+  display:flex;
+  height:calc(100% - 58px);
+}
+.sidebar{
+  width:200px;
+  background:#202733;
+  color:white;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  overflow-y:auto;
+}
+.sidebar h3{
+  font-size:13px;
+  color:#8a94a6;
+  margin-bottom:5px;
+  text-transform:uppercase;
+}
+.cat-btn{
+  background:#2c3443;
+  text-align:right;
+  width:100%;
+  font-size:14px;
+  padding:10px;
+}
+.cat-btn.active{
+  background:#00b14f;
+}
+
+.main{
+  flex:1;
+  padding:15px 20px;
+  overflow-y:auto;
+}
+.search-bar{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+.search-bar input{
+  margin:0;
+}
+
+.add-product-box{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  margin-bottom:15px;
+}
+.add-product-box h3{
+  margin-bottom:10px;
+  color:#00b14f;
+  font-size:15px;
+}
+.add-product-box .row{
+  display:flex;
+  gap:10px;
+}
+.add-product-box input,
+.add-product-box select{
+  padding:10px;
+  font-size:14px;
+  flex:1;
+  margin:0;
+}
+.add-product-box button{
+  margin-top:10px;
+  width:100%;
+}
+
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:14px;
+}
+.card{
+  background:white;
+  padding:16px 10px;
+  border-radius:10px;
+  box-shadow:0 3px 8px rgba(0,0,0,.08);
+  cursor:pointer;
+  text-align:center;
+  user-select:none;
+  transition:.15s;
+  position:relative;
+}
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 16px rgba(0,177,79,.25);
+}
+.card .icon{
+  font-size:28px;
+  margin-bottom:6px;
+}
+.card h4{
+  font-size:14px;
+  margin-bottom:4px;
+}
+.card p{
+  color:#00b14f;
+  font-weight:bold;
+  font-size:13px;
+}
+.out-of-stock{
+  opacity:.4;
+  cursor:not-allowed;
+}
+.out-of-stock:hover{
+  transform:none;
+  box-shadow:0 3px 8px rgba(0,0,0,.08);
+}
+.delete-product-btn{
+  position:absolute;
+  top:6px;
+  left:6px;
+  width:22px;
+  height:22px;
+  padding:0;
+  line-height:22px;
+  border-radius:50%;
+  background:#e74c3c;
+  color:white;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.delete-product-btn:hover{
+  background:#c0392b;
+}
+
+/* ===== الكارت ===== */
+.cart{
+  width:320px;
+  background:white;
+  padding:18px;
+  box-shadow:-3px 0 10px rgba(0,0,0,.08);
+  display:flex;
+  flex-direction:column;
+}
+.cart-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+.cart-header h2{
+  font-size:18px;
+}
+.order-meta{
+  font-size:12px;
+  color:#888;
+  margin-bottom:10px;
+}
+#items{
+  flex:1;
+  overflow-y:auto;
+  min-height:80px;
+}
+.empty-cart{
+  text-align:center;
+  color:#aaa;
+  padding:30px 0;
+  font-size:14px;
+}
+.item-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #eee;
+  font-size:13px;
+}
+.item-row .info{
+  flex:1;
+}
+.item-row .info .name{
+  font-weight:bold;
+}
+.item-row .qty-controls{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:0 8px;
+}
+.item-row .qty-controls button{
+  padding:2px 8px;
+  font-size:14px;
+  background:#eee;
+  color:#333;
+}
+.item-row .qty-controls button:hover{
+  background:#ddd;
+}
+.item-row .remove-btn{
+  background:#e74c3c;
+  padding:4px 8px;
+  font-size:12px;
+}
+.item-row .remove-btn:hover{
+  background:#c0392b;
+}
+.item-row{
+  flex-wrap:wrap;
+}
+.item-note-input{
+  width:100%;
+  margin:6px 0 4px;
+  padding:6px 8px;
+  font-size:12px;
+  border:1px dashed #ddd;
+  border-radius:6px;
+  background:#fafafa;
+}
+.item-note-input:focus{
+  border-color:#00b14f;
+  background:white;
+}
+
+.summary{
+  border-top:2px dashed #eee;
+  padding-top:10px;
+  margin-top:10px;
+  font-size:14px;
+}
+.summary .line{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+  color:#555;
+}
+.summary .grand-total{
+  font-size:20px;
+  font-weight:bold;
+  color:#00b14f;
+  border-top:1px solid #eee;
+  padding-top:8px;
+  margin-top:8px;
+}
+.discount-row{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  margin-bottom:8px;
+}
+.discount-row input{
+  margin:0;
+  padding:8px;
+  font-size:13px;
+}
+.discount-row span{
+  font-size:13px;
+  color:#888;
+}
+
+.payment-methods{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.payment-methods button{
+  flex:1;
+  background:#eee;
+  color:#333;
+  font-size:13px;
+  padding:10px;
+}
+.payment-methods button.active{
+  background:#202733;
+  color:white;
+}
+
+.checkout-btn{
+  margin-top:12px;
+  background:#2980b9;
+  font-size:16px;
+}
+.checkout-btn:hover{
+  background:#1f618d;
+}
+.clear-btn{
+  margin-top:8px;
+  background:#888;
+  font-size:13px;
+}
+.clear-btn:hover{
+  background:#666;
+}
+
+/* ===== الرسيت (يظهر وقت الطباعة فقط) ===== */
+#receipt{
+  display:none;
+}
+@media print{
+  body *{
+    visibility:hidden;
+  }
+  #receipt, #receipt *{
+    visibility:visible;
+  }
+  #receipt{
+    display:block;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    padding:15px;
+    font-family:'Courier New',monospace;
+  }
+  #receipt h2{
+    text-align:center;
+    margin-bottom:4px;
+  }
+  #receipt .center{
+    text-align:center;
+  }
+  #receipt table{
+    width:100%;
+    border-collapse:collapse;
+    margin:10px 0;
+    font-size:13px;
+  }
+  #receipt td, #receipt th{
+    padding:4px 2px;
+    text-align:right;
+    border-bottom:1px dashed #000;
+  }
+  #receipt .line{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    margin-bottom:3px;
+  }
+  #receipt .grand{
+    font-size:16px;
+    font-weight:bold;
+    border-top:1px solid #000;
+    padding-top:5px;
+    margin-top:5px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="version-badge">🔥 FIREBASE v2.0</div>
+
+<!-- ==================== شاشة تسجيل الدخول ==================== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login">
+    <h1>Foodics Training</h1>
+    <p class="sub">نظام نقاط بيع تدريبي</p>
+    <input type="text" id="user" placeholder="اسم المستخدم">
+    <input type="password" id="pass" placeholder="كلمة المرور">
+    <select id="shiftType">
+      <option value="صباحي">شيفت صباحي</option>
+      <option value="مسائي">شيفت مسائي</option>
+    </select>
+    <button id="loginBtn">دخول</button>
+    <button class="guest-btn" id="guestBtn">جرب الموقع كزائر (بدون حساب)</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ==================== واجهة الـ POS ==================== -->
+<div id="pos">
+  <div class="topbar">
+    <div class="brand">Foodics Training POS</div>
+
+    <div class="order-type">
+      <button class="order-btn active" data-type="Dine In">تناول بالفرع</button>
+      <button class="order-btn" data-type="Takeaway">تيك أواي</button>
+      <button class="order-btn" data-type="Delivery">دليفري</button>
+      <input type="text" id="tableNo" class="table-input" placeholder="رقم الطاولة">
+    </div>
+
+    <div class="user-info">
+      <span id="cashierName">الكاشير: -</span>
+      <span id="clockNow">-</span>
+      <button class="manage-users-btn" id="manageUsersBtn" style="display:none;">إدارة المستخدمين</button>
+      <button class="logout-btn" id="logoutBtn">تسجيل خروج</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h3>الأقسام</h3>
+      <button class="cat-btn active" data-cat="all">كل الأصناف</button>
+      <button class="cat-btn" data-cat="Milkshakes">ميلك شيك</button>
+      <button class="cat-btn" data-cat="Ice Cream">آيس كريم</button>
+      <button class="cat-btn" data-cat="Sandwiches">ساندوتشات</button>
+      <button class="cat-btn" data-cat="Main Dishes">أطباق رئيسية</button>
+      <button class="cat-btn" data-cat="Oriental Grill">مشاوي</button>
+    </div>
+
+    <div class="main">
+      <div class="search-bar">
+        <input type="text" id="searchBox" placeholder="ابحث عن صنف...">
+      </div>
+
+      <div class="add-product-box">
+        <h3>إضافة صنف جديد</h3>
+        <div class="row">
+          <input type="text" id="newName" placeholder="اسم الصنف">
+          <input type="number" id="newPrice" placeholder="السعر EGP">
+          <select id="newCat">
+            <option value="Milkshakes">ميلك شيك</option>
+            <option value="Ice Cream">آيس كريم</option>
+            <option value="Sandwiches">ساندوتشات</option>
+            <option value="Main Dishes">أطباق رئيسية</option>
+            <option value="Oriental Grill">مشاوي</option>
+          </select>
+        </div>
+        <button id="addProductBtn">إضافة الصنف</button>
+        <button id="importTallahBtn" style="margin-top:8px;background:#8e44ad;display:none;">استيراد قائمة مطعم طلة كاملة</button>
+      </div>
+
+      <div class="products" id="products"></div>
+    </div>
+
+    <div class="cart">
+      <div class="cart-header">
+        <h2>الطلب الحالي</h2>
+        <span id="orderNumberLabel">#---</span>
+      </div>
+      <div class="order-meta" id="orderMeta">النوع: تناول بالفرع</div>
+
+      <div id="items">
+        <div class="empty-cart">لا يوجد أصناف في الطلب</div>
+      </div>
+
+      <div class="discount-row">
+        <span>خصم %</span>
+        <input type="number" id="discountInput" value="0" min="0" max="100">
+      </div>
+
+      <div class="summary">
+        <div class="line"><span>الإجمالي الفرعي</span><span id="subtotal">0</span></div>
+        <div class="line"><span>الخصم</span><span id="discountAmount">0</span></div>
+        <div class="line"><span>الضريبة (14%)</span><span id="taxAmount">0</span></div>
+        <div class="line grand-total"><span>الإجمالي</span><span id="grandTotal">0</span></div>
+      </div>
+
+      <div class="payment-methods">
+        <button class="pay-btn active" data-method="Cash">كاش</button>
+        <button class="pay-btn" data-method="Card">فيزا</button>
+        <button class="pay-btn" data-method="Wallet">محفظة</button>
+      </div>
+
+      <button class="checkout-btn" id="checkoutBtn">إتمام الطلب وطباعة الرسيت</button>
+      <button class="clear-btn" id="clearBtn">مسح الطلب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== نافذة إدارة المستخدمين ==================== -->
+<div class="modal-overlay" id="usersModal">
+  <div class="modal-box">
+    <h3>إضافة مستخدم جديد</h3>
+
+    <div class="row">
+      <input type="text" id="newUserName" placeholder="اسم المستخدم">
+    </div>
+    <div class="row">
+      <input type="password" id="newUserPass" placeholder="كلمة المرور (6 حروف على الأقل)">
+    </div>
+    <button id="addUserBtn">إضافة مستخدم</button>
+    <div class="error-msg" id="userError"></div>
+
+    <p style="font-size:12px;color:#888;margin-top:12px;line-height:1.6;">
+      لعرض أو حذف الحسابات الموجودة، ادخل على
+      <a href="https://console.firebase.google.com/project/foodics-training/authentication/users" target="_blank">
+        Firebase Console → Authentication → Users
+      </a>
+      مباشرة.
+    </p>
+
+    <button class="modal-close-btn" id="closeUsersModal">إغلاق</button>
+  </div>
+</div>
+
+<!-- ==================== الرسيت للطباعة ==================== -->
+<div id="receipt">
+  <h2>Foodics Training POS</h2>
+  <p class="center">فرع التدريب الرئيسي</p>
+  <p class="center" id="receiptDate"></p>
+  <hr>
+  <div class="line"><span>رقم الطلب</span><span id="rOrderNo"></span></div>
+  <div class="line"><span>الكاشير</span><span id="rCashier"></span></div>
+  <div class="line"><span>نوع الطلب</span><span id="rOrderType"></span></div>
+  <div class="line" id="rTableRow"><span>الطاولة</span><span id="rTable"></span></div>
+  <table>
+    <thead><tr><th>الصنف</th><th>الكمية</th><th>السعر</th></tr></thead>
+    <tbody id="receiptItems"></tbody>
+  </table>
+  <div class="line"><span>الإجمالي الفرعي</span><span id="rSubtotal"></span></div>
+  <div class="line"><span>الخصم</span><span id="rDiscount"></span></div>
+  <div class="line"><span>الضريبة</span><span id="rTax"></span></div>
+  <div class="line grand"><span>الإجمالي</span><span id="rTotal"></span></div>
+  <div class="line"><span>طريقة الدفع</span><span id="rPayment"></span></div>
+  <p class="center" style="margin-top:10px;">شكراً لزيارتكم</p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============ إعداد Firebase ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyA1wwH5dC6J35wWkBblkbEYAicBmUZ4DLc",
+  authDomain: "foodics-training.firebaseapp.com",
+  projectId: "foodics-training",
+  storageBucket: "foodics-training.firebasestorage.app",
+  messagingSenderId: "513818011587",
+  appId: "1:513818011587:web:955b2661c4ffe4f6093f76",
+  measurementId: "G-RK022PVZTE"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Firebase Auth محتاج إيميل، فبنحول اسم المستخدم لإيميل وهمي ثابت
+const EMAIL_DOMAIN = "@foodics-training.local";
+function usernameToEmail(username) {
+  return username.toLowerCase() + EMAIL_DOMAIN;
+}
+
+/* ============ بيانات المنتجات (متخزنة على Firestore دلوقتي) ============ */
+const defaultProducts = [
+  // Milkshakes
+  { name: "Milk Shake", price: 95, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Nescafe Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Banana Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Caramel Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Red Berry Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Mocha Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Kiwi Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Blue Berry Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Lotus Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+  { name: "Candy Shake", price: 99, icon: "🥤", cat: "Milkshakes", stock: true },
+
+  // Ice Cream
+  { name: "Mix Ice Cream", price: 94, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Banana Split", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Sun Day", price: 89, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Sun Day Oreo", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Sun Day Mars", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Sun Day Kitkat", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Sun Day Twix", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Sun Day Chocolate Hazelnut", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Vanilla Madness", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Chocolate Madness", price: 99, icon: "🍨", cat: "Ice Cream", stock: true },
+  { name: "Candy Madness", price: 105, icon: "🍨", cat: "Ice Cream", stock: true },
+
+  // Sandwiches
+  { name: "Chicken Panne", price: 179, icon: "🥪", cat: "Sandwiches", stock: true },
+  { name: "Chicken Crispy", price: 179, icon: "🥪", cat: "Sandwiches", stock: true },
+  { name: "Chicken Zinger", price: 179, icon: "🌶️", cat: "Sandwiches", stock: true },
+  { name: "Cordon Blue", price: 189, icon: "🥪", cat: "Sandwiches", stock: true },
+  { name: "Blue Ripple", price: 189, icon: "🥪", cat: "Sandwiches", stock: true },
+  { name: "Country Fried Chicken", price: 189, icon: "🥪", cat: "Sandwiches", stock: true },
+  { name: "Grilled Chicken Sandwich", price: 169, icon: "🥪", cat: "Sandwiches", stock: true },
+
+  // Main Dishes
+  { name: "Grilled Chicken", price: 279, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Grilled Steak", price: 389, icon: "🥩", cat: "Main Dishes", stock: true },
+  { name: "Mix Grilled", price: 379, icon: "🍖", cat: "Main Dishes", stock: true },
+  { name: "Fajita Chicken", price: 309, icon: "🌶️", cat: "Main Dishes", stock: true },
+  { name: "Fajita Beef", price: 409, icon: "🌶️", cat: "Main Dishes", stock: true },
+  { name: "Fajita Mix", price: 374, icon: "🌶️", cat: "Main Dishes", stock: true },
+  { name: "Fajita Sausage", price: 329, icon: "🌶️", cat: "Main Dishes", stock: true },
+  { name: "Chicken Stuffed", price: 359, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Chicken Mix", price: 309, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Beef Mix", price: 409, icon: "🥩", cat: "Main Dishes", stock: true },
+  { name: "Quesadilla Chicken", price: 309, icon: "🌮", cat: "Main Dishes", stock: true },
+  { name: "Quesadilla Beef", price: 409, icon: "🌮", cat: "Main Dishes", stock: true },
+  { name: "Smoked Roll", price: 369, icon: "🌶️", cat: "Main Dishes", stock: true },
+  { name: "Combo Tallah", price: 409, icon: "🍽️", cat: "Main Dishes", stock: true },
+  { name: "Special Tallah", price: 439, icon: "🍽️", cat: "Main Dishes", stock: true },
+  { name: "Mexican Owleh", price: 359, icon: "🌶️", cat: "Main Dishes", stock: true },
+  { name: "Chicken Pickles", price: 319, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Picatta Chicken", price: 329, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Picatta Beef", price: 419, icon: "🥩", cat: "Main Dishes", stock: true },
+  { name: "Goreginzola Chicken", price: 409, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Italian Chicken", price: 329, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Italian Beef", price: 419, icon: "🥩", cat: "Main Dishes", stock: true },
+  { name: "Philadelphia Chicken", price: 329, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Philadelphia Beef", price: 419, icon: "🥩", cat: "Main Dishes", stock: true },
+  { name: "Monterey Chicken", price: 329, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Trois Chicken", price: 329, icon: "🍗", cat: "Main Dishes", stock: true },
+  { name: "Trois Steak", price: 429, icon: "🥩", cat: "Main Dishes", stock: true },
+
+  // Oriental Grill
+  { name: "Tikka Meal", price: 279, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Mashab Meal", price: 309, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Shish Tawook Meal", price: 259, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Chicken Mix Meal", price: 289, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Kofta Meal", price: 339, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Mix Meat Meal", price: 409, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Mix Grilled Meal", price: 449, icon: "🍢", cat: "Oriental Grill", stock: true },
+  { name: "Grilled Tallah Meal", price: 499, icon: "🍢", cat: "Oriental Grill", stock: true },
+];
+
+let products = [];
+let productsUnsubscribe = null;
+
+async function ensureDefaultProducts() {
+  const snapshot = await db.collection("products").limit(1).get();
+  if (snapshot.empty) {
+    const batch = db.batch();
+    defaultProducts.forEach(p => {
+      const ref = db.collection("products").doc();
+      batch.set(ref, p);
+    });
+    await batch.commit();
+  }
+}
+
+function listenToProducts() {
+  if (productsUnsubscribe) productsUnsubscribe();
+  productsUnsubscribe = db.collection("products").onSnapshot(snapshot => {
+    products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderProducts();
+  });
+}
+
+async function addProductToDb(product) {
+  await db.collection("products").add(product);
+}
+
+async function deleteProductFromDb(id) {
+  await db.collection("products").doc(id).delete();
+}
+
+const TAX_RATE = 0.14;
+
+let cart = [];              // [{name, price, qty}]
+let currentCat = "all";
+let currentSearch = "";
+let orderType = "Dine In";
+let paymentMethod = "Cash";
+let orderCounter = 1000;
+let cashierName = "";
+
+const productsEl = document.getElementById("products");
+const itemsEl = document.getElementById("items");
+
+/* ============ تسجيل الدخول (Firebase Authentication) ============ */
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const user = document.getElementById("user").value.trim();
+  const pass = document.getElementById("pass").value.trim();
+  const errorEl = document.getElementById("loginError");
+
+  if (!user || !pass) {
+    errorEl.textContent = "من فضلك ادخل اسم المستخدم وكلمة المرور";
+    return;
+  }
+
+  errorEl.textContent = "جاري تسجيل الدخول...";
+
+  try {
+    await auth.signInWithEmailAndPassword(usernameToEmail(user), pass);
+    errorEl.textContent = "";
+    cashierName = user;
+    document.getElementById("cashierName").textContent = "الكاشير: " + cashierName;
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("pos").style.display = "block";
+
+    // زرار إدارة المستخدمين يظهر بس للأدمن
+    document.getElementById("manageUsersBtn").style.display =
+      (cashierName === "admin") ? "inline-block" : "none";
+    document.getElementById("importTallahBtn").style.display =
+      (cashierName === "admin") ? "block" : "none";
+
+    await ensureDefaultProducts();
+    listenToProducts();
+    renderCart();
+    updateClock();
+    setInterval(updateClock, 1000 * 30);
+  } catch (err) {
+    errorEl.textContent = "اسم المستخدم أو كلمة المرور غير صحيحة";
+  }
+});
+
+document.getElementById("guestBtn").addEventListener("click", async () => {
+  const errorEl = document.getElementById("loginError");
+  errorEl.textContent = "جاري الدخول كزائر...";
+
+  try {
+    await auth.signInAnonymously();
+    errorEl.textContent = "";
+    cashierName = "زائر";
+    document.getElementById("cashierName").textContent = "الكاشير: زائر (تجربة)";
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("pos").style.display = "block";
+
+    // الزائر ميقدرش يدير المستخدمين
+    document.getElementById("manageUsersBtn").style.display = "none";
+
+    await ensureDefaultProducts();
+    listenToProducts();
+    renderCart();
+    updateClock();
+    setInterval(updateClock, 1000 * 30);
+  } catch (err) {
+    errorEl.textContent = "الدخول كزائر مش متاح دلوقتي، حاول تاني";
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  if (cart.length > 0 && !confirm("فيه طلب لسه مفتوح، متأكد عايز تخرج؟")) return;
+  if (productsUnsubscribe) { productsUnsubscribe(); productsUnsubscribe = null; }
+  await auth.signOut();
+  document.getElementById("pos").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("manageUsersBtn").style.display = "none";
+  cart = [];
+});
+
+/* ---- نافذة إدارة المستخدمين (الأدمن بس) ---- */
+const usersModal = document.getElementById("usersModal");
+
+document.getElementById("manageUsersBtn").addEventListener("click", () => {
+  usersModal.classList.add("show");
+});
+
+document.getElementById("closeUsersModal").addEventListener("click", () => {
+  usersModal.classList.remove("show");
+});
+
+document.getElementById("addUserBtn").addEventListener("click", async () => {
+  const nameInput = document.getElementById("newUserName");
+  const passInput = document.getElementById("newUserPass");
+  const errorEl = document.getElementById("userError");
+
+  const name = nameInput.value.trim();
+  const pass = passInput.value.trim();
+
+  if (!name || !pass) {
+    errorEl.textContent = "من فضلك اكتب اسم مستخدم وكلمة مرور";
+    return;
+  }
+  if (pass.length < 6) {
+    errorEl.textContent = "كلمة المرور لازم تكون 6 حروف/أرقام على الأقل";
+    return;
+  }
+
+  errorEl.textContent = "جاري الإضافة...";
+
+  // بنستخدم تطبيق فرعي مؤقت عشان ننشئ الحساب من غير ما نسجل خروج الأدمن الحالي
+  const secondaryApp = firebase.initializeApp(firebaseConfig, "secondary_" + Date.now());
+  try {
+    await secondaryApp.auth().createUserWithEmailAndPassword(usernameToEmail(name), pass);
+    await secondaryApp.auth().signOut();
+    errorEl.textContent = "";
+    nameInput.value = "";
+    passInput.value = "";
+    alert(`تم إنشاء حساب "${name}" بنجاح، يقدر يدخل بيه دلوقتي`);
+  } catch (err) {
+    if (err.code === "auth/email-already-in-use") {
+      errorEl.textContent = "اسم المستخدم ده موجود بالفعل";
+    } else {
+      errorEl.textContent = "حصل خطأ: " + err.message;
+    }
+  } finally {
+    await secondaryApp.delete();
+  }
+});
+
+function updateClock(){
+  const now = new Date();
+  document.getElementById("clockNow").textContent = now.toLocaleTimeString("ar-EG",{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ============ نوع الطلب ============ */
+document.querySelectorAll(".order-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".order-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    orderType = btn.dataset.type;
+    const typeNames = {"Dine In":"تناول بالفرع","Takeaway":"تيك أواي","Delivery":"دليفري"};
+    document.getElementById("orderMeta").textContent = "النوع: " + typeNames[orderType];
+  });
+});
+
+/* ============ الأقسام + البحث ============ */
+document.querySelectorAll(".cat-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCat = btn.dataset.cat;
+    renderProducts();
+  });
+});
+
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  currentSearch = e.target.value.trim().toLowerCase();
+  renderProducts();
+});
+
+function renderProducts() {
+  productsEl.innerHTML = "";
+  let list = currentCat === "all" ? products : products.filter(p => p.cat === currentCat);
+  if (currentSearch) {
+    list = list.filter(p => p.name.toLowerCase().includes(currentSearch));
+  }
+
+  if (list.length === 0) {
+    productsEl.innerHTML = "<p>لا يوجد منتجات مطابقة</p>";
+    return;
+  }
+
+  list.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card" + (p.stock ? "" : " out-of-stock");
+    card.innerHTML = `
+      <button class="delete-product-btn" title="حذف الصنف">×</button>
+      <div class="icon">${p.icon}</div><h4>${p.name}</h4><p>${p.price} EGP</p>`;
+
+    card.querySelector(".delete-product-btn").addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (confirm(`متأكد عايز تمسح "${p.name}" نهائيًا من قائمة المنتجات؟`)) {
+        await deleteProductFromDb(p.id);
+      }
+    });
+
+    if (p.stock) {
+      card.addEventListener("click", () => addToCart(p));
+    }
+    productsEl.appendChild(card);
+  });
+}
+
+/* ============ إضافة صنف جديد ============ */
+document.getElementById("importTallahBtn").addEventListener("click", async () => {
+  if (!confirm(`هيتم إضافة ${defaultProducts.length} صنف من قائمة مطعم طلة (هيتخطى أي صنف بنفس الاسم موجود بالفعل). تكمل؟`)) return;
+
+  const existingNames = new Set(products.map(p => p.name));
+  const toAdd = defaultProducts.filter(p => !existingNames.has(p.name));
+
+  if (toAdd.length === 0) {
+    alert("كل الأصناف دي موجودة بالفعل في القائمة");
+    return;
+  }
+
+  const batch = db.batch();
+  toAdd.forEach(p => {
+    const ref = db.collection("products").doc();
+    batch.set(ref, p);
+  });
+  await batch.commit();
+
+  alert(`تم إضافة ${toAdd.length} صنف بنجاح`);
+});
+
+document.getElementById("addProductBtn").addEventListener("click", async () => {
+  const nameInput = document.getElementById("newName");
+  const priceInput = document.getElementById("newPrice");
+  const catInput = document.getElementById("newCat");
+
+  const name = nameInput.value.trim();
+  const price = parseFloat(priceInput.value);
+  const cat = catInput.value;
+
+  if (!name || isNaN(price) || price <= 0) {
+    alert("من فضلك اكتب اسم صحيح وسعر أكبر من صفر");
+    return;
+  }
+
+  await addProductToDb({ name, price, icon: "🆕", cat, stock: true });
+  nameInput.value = "";
+  priceInput.value = "";
+});
+
+/* ============ الكارت ============ */
+function addToCart(product) {
+  const existing = cart.find(i => i.name === product.name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ name: product.name, price: product.price, qty: 1, note: "" });
+  }
+  renderCart();
+}
+
+function updateNote(index, value) {
+  cart[index].note = value;
+}
+
+function changeQty(index, delta) {
+  cart[index].qty += delta;
+  if (cart[index].qty <= 0) {
+    cart.splice(index, 1);
+  }
+  renderCart();
+}
+
+function removeItem(index) {
+  cart.splice(index, 1);
+  renderCart();
+}
+
+function calcTotals() {
+  const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const discountPercent = parseFloat(document.getElementById("discountInput").value) || 0;
+  const discountAmount = subtotal * (discountPercent / 100);
+  const afterDiscount = subtotal - discountAmount;
+  const tax = afterDiscount * TAX_RATE;
+  const total = afterDiscount + tax;
+  return { subtotal, discountAmount, tax, total };
+}
+
+function renderCart() {
+  itemsEl.innerHTML = "";
+
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div class="empty-cart">لا يوجد أصناف في الطلب</div>';
+  } else {
+    cart.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "item-row";
+      row.innerHTML = `
+        <div class="info">
+          <div class="name">${item.name}</div>
+          <div>${item.price} EGP</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-minus">-</button>
+          <span>${item.qty}</span>
+          <button class="qty-plus">+</button>
+        </div>
+        <button class="remove-btn">حذف</button>
+        <input type="text" class="item-note-input" placeholder="ملاحظة على الصنف (مثال: من غير سكر)" value="${item.note || ''}">
+      `;
+      row.querySelector(".qty-minus").addEventListener("click", () => changeQty(index, -1));
+      row.querySelector(".qty-plus").addEventListener("click", () => changeQty(index, 1));
+      row.querySelector(".remove-btn").addEventListener("click", () => removeItem(index));
+      row.querySelector(".item-note-input").addEventListener("input", (e) => updateNote(index, e.target.value));
+      itemsEl.appendChild(row);
+    });
+  }
+
+  const { subtotal, discountAmount, tax, total } = calcTotals();
+  document.getElementById("subtotal").textContent = subtotal.toFixed(2);
+  document.getElementById("discountAmount").textContent = discountAmount.toFixed(2);
+  document.getElementById("taxAmount").textContent = tax.toFixed(2);
+  document.getElementById("grandTotal").textContent = total.toFixed(2);
+}
+
+document.getElementById("discountInput").addEventListener("input", renderCart);
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (cart.length === 0) return;
+  if (confirm("متأكد عايز تمسح الطلب؟")) {
+    cart = [];
+    renderCart();
+  }
+});
+
+/* ============ طريقة الدفع ============ */
+document.querySelectorAll(".pay-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".pay-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    paymentMethod = btn.dataset.method;
+  });
+});
+
+/* ============ إتمام الطلب + طباعة الرسيت ============ */
+document.getElementById("checkoutBtn").addEventListener("click", () => {
+  if (cart.length === 0) {
+    alert("السلة فارغة، ضيف أصناف الأول");
+    return;
+  }
+
+  orderCounter += 1;
+  const orderNo = "#" + orderCounter;
+  document.getElementById("orderNumberLabel").textContent = orderNo;
+
+  const { subtotal, discountAmount, tax, total } = calcTotals();
+  const typeNames = {"Dine In":"تناول بالفرع","Takeaway":"تيك أواي","Delivery":"دليفري"};
+  const payNames = {"Cash":"كاش","Card":"فيزا/ماستركارد","Wallet":"محفظة إلكترونية"};
+  const tableNo = document.getElementById("tableNo").value.trim();
+
+  document.getElementById("receiptDate").textContent = new Date().toLocaleString("ar-EG");
+  document.getElementById("rOrderNo").textContent = orderNo;
+  document.getElementById("rCashier").textContent = cashierName;
+  document.getElementById("rOrderType").textContent = typeNames[orderType];
+
+  const tableRow = document.getElementById("rTableRow");
+  if (orderType === "Dine In" && tableNo) {
+    tableRow.style.display = "flex";
+    document.getElementById("rTable").textContent = tableNo;
+  } else {
+    tableRow.style.display = "none";
+  }
+
+  const receiptItems = document.getElementById("receiptItems");
+  receiptItems.innerHTML = "";
+  cart.forEach(item => {
+    const noteHtml = item.note ? `<div style="font-size:11px;color:#555;">ملاحظة: ${item.note}</div>` : "";
+    receiptItems.innerHTML += `<tr><td>${item.name}${noteHtml}</td><td>${item.qty}</td><td>${(item.price*item.qty).toFixed(2)} EGP</td></tr>`;
+  });
+
+  document.getElementById("rSubtotal").textContent = subtotal.toFixed(2) + " EGP";
+  document.getElementById("rDiscount").textContent = discountAmount.toFixed(2) + " EGP";
+  document.getElementById("rTax").textContent = tax.toFixed(2) + " EGP";
+  document.getElementById("rTotal").textContent = total.toFixed(2) + " EGP";
+  document.getElementById("rPayment").textContent = payNames[paymentMethod];
+
+  window.print();
+
+  // بعد إتمام الطلب يفضى الكارت استعدادًا لطلب جديد
+  cart = [];
+  document.getElementById("discountInput").value = 0;
+  renderCart();
+});
+</script>
+</body>
+</html>
