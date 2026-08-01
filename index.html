@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>نبض | Nabd POS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<!-- ==================== شاشة تسجيل الدخول ==================== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login">
+    <h1>نبض</h1>
+    <p class="sub">نظام نقاط البيع الذكي لمحلك</p>
+    <input type="text" id="user" placeholder="اسم المستخدم">
+    <input type="password" id="pass" placeholder="كلمة المرور">
+    <select id="shiftType">
+      <option value="صباحي">شيفت صباحي</option>
+      <option value="مسائي">شيفت مسائي</option>
+    </select>
+    <button id="loginBtn">دخول</button>
+    <button class="guest-btn" id="guestBtn">جرب الموقع كزائر (بدون حساب)</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ==================== واجهة الـ POS ==================== -->
+<div id="pos">
+  <div class="topbar">
+    <div class="brand">نبض</div>
+
+    <div class="order-type">
+      <button class="order-btn active" data-type="Dine In">تناول بالفرع</button>
+      <button class="order-btn" data-type="Takeaway">تيك أواي</button>
+      <button class="order-btn" data-type="Delivery">دليفري</button>
+      <input type="text" id="tableNo" class="table-input" placeholder="رقم الطاولة">
+    </div>
+
+    <div class="user-info">
+      <span id="cashierName">الكاشير: -</span>
+      <span id="clockNow">-</span>
+      <button class="manage-users-btn" id="manageUsersBtn" style="display:none;">إدارة المستخدمين</button>
+      <button class="logout-btn" id="logoutBtn">تسجيل خروج</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h3>الأقسام</h3>
+      <button class="cat-btn active" data-cat="all">كل الأصناف</button>
+      <button class="cat-btn" data-cat="Milkshakes">ميلك شيك</button>
+      <button class="cat-btn" data-cat="Ice Cream">آيس كريم</button>
+      <button class="cat-btn" data-cat="Sandwiches">ساندوتشات</button>
+      <button class="cat-btn" data-cat="Main Dishes">أطباق رئيسية</button>
+      <button class="cat-btn" data-cat="Oriental Grill">مشاوي</button>
+    </div>
+
+    <div class="main">
+      <div class="search-bar">
+        <input type="text" id="searchBox" placeholder="ابحث عن صنف...">
+      </div>
+
+      <div class="add-product-box">
+        <h3>إضافة صنف جديد</h3>
+        <div class="row">
+          <input type="text" id="newName" placeholder="اسم الصنف">
+          <input type="number" id="newPrice" placeholder="السعر EGP">
+          <select id="newCat">
+            <option value="Milkshakes">ميلك شيك</option>
+            <option value="Ice Cream">آيس كريم</option>
+            <option value="Sandwiches">ساندوتشات</option>
+            <option value="Main Dishes">أطباق رئيسية</option>
+            <option value="Oriental Grill">مشاوي</option>
+          </select>
+        </div>
+        <button id="addProductBtn">إضافة الصنف</button>
+        <button id="importTallahBtn" style="margin-top:8px;background:#8e44ad;display:none;">استيراد قائمة مطعم طلة كاملة</button>
+      </div>
+
+      <div class="products" id="products"></div>
+    </div>
+
+    <div class="cart">
+      <div class="cart-header">
+        <h2>الطلب الحالي</h2>
+        <span id="orderNumberLabel">#---</span>
+      </div>
+      <div class="order-meta" id="orderMeta">النوع: تناول بالفرع</div>
+
+      <div id="items">
+        <div class="empty-cart">لا يوجد أصناف في الطلب</div>
+      </div>
+
+      <div class="discount-row">
+        <span>خصم %</span>
+        <input type="number" id="discountInput" value="0" min="0" max="100">
+      </div>
+
+      <div class="summary">
+        <div class="line"><span>الإجمالي الفرعي</span><span id="subtotal">0</span></div>
+        <div class="line"><span>الخصم</span><span id="discountAmount">0</span></div>
+        <div class="line"><span>الضريبة (14%)</span><span id="taxAmount">0</span></div>
+        <div class="line grand-total"><span>الإجمالي</span><span id="grandTotal">0</span></div>
+      </div>
+
+      <div class="payment-methods">
+        <button class="pay-btn active" data-method="Cash">كاش</button>
+        <button class="pay-btn" data-method="Card">فيزا</button>
+        <button class="pay-btn" data-method="Wallet">محفظة</button>
+      </div>
+
+      <button class="checkout-btn" id="checkoutBtn">إتمام الطلب وطباعة الرسيت</button>
+      <button class="clear-btn" id="clearBtn">مسح الطلب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== نافذة إدارة المستخدمين ==================== -->
+<div class="modal-overlay" id="usersModal">
+  <div class="modal-box">
+    <h3>إضافة مستخدم جديد</h3>
+
+    <div class="row">
+      <input type="text" id="newUserName" placeholder="اسم المستخدم">
+    </div>
+    <div class="row">
+      <input type="password" id="newUserPass" placeholder="كلمة المرور (6 حروف على الأقل)">
+    </div>
+    <button id="addUserBtn">إضافة مستخدم</button>
+    <div class="error-msg" id="userError"></div>
+
+    <p style="font-size:12px;color:#888;margin-top:12px;line-height:1.6;">
+      لعرض أو حذف الحسابات الموجودة، ادخل على
+      <a href="https://console.firebase.google.com/project/foodics-training/authentication/users" target="_blank">
+        Firebase Console → Authentication → Users
+      </a>
+      مباشرة.
+    </p>
+
+    <button class="modal-close-btn" id="closeUsersModal">إغلاق</button>
+  </div>
+</div>
+
+<!-- ==================== الرسيت للطباعة ==================== -->
+<div id="receipt">
+  <h2>نبض | Nabd POS</h2>
+  <p class="center">نظام نقاط بيع للمطاعم والمقاهي</p>
+  <p class="center" id="receiptDate"></p>
+  <hr>
+  <div class="line"><span>رقم الطلب</span><span id="rOrderNo"></span></div>
+  <div class="line"><span>الكاشير</span><span id="rCashier"></span></div>
+  <div class="line"><span>نوع الطلب</span><span id="rOrderType"></span></div>
+  <div class="line" id="rTableRow"><span>الطاولة</span><span id="rTable"></span></div>
+  <table>
+    <thead><tr><th>الصنف</th><th>الكمية</th><th>السعر</th></tr></thead>
+    <tbody id="receiptItems"></tbody>
+  </table>
+  <div class="line"><span>الإجمالي الفرعي</span><span id="rSubtotal"></span></div>
+  <div class="line"><span>الخصم</span><span id="rDiscount"></span></div>
+  <div class="line"><span>الضريبة</span><span id="rTax"></span></div>
+  <div class="line grand"><span>الإجمالي</span><span id="rTotal"></span></div>
+  <div class="line"><span>طريقة الدفع</span><span id="rPayment"></span></div>
+  <p class="center" style="margin-top:10px;">شكراً لزيارتكم</p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>
